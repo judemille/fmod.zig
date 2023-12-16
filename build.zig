@@ -20,7 +20,20 @@ const fsbank_platforms = [_]TargetPlatform{
     TargetPlatform{ .in_std = .windows },
 };
 
-const PlatformBuildInfo = struct { translate_c_step: *std.Build.Step.TranslateC, lib_search_dir: []const u8, link_lib: []const u8 };
+const PlatformBuildInfo = struct {
+    lib_search_dirs: []const []const u8,
+    link_libs: []const []const u8,
+};
+
+const BuildContext = struct {
+    b: *std.Build,
+    tgt: std.Target,
+    optimize: std.builtin.OptimizeMode,
+    fsbank: bool,
+    studio: bool,
+    fmod_dir: []const u8,
+    translate_c_step: *std.Build.Step.TranslateC,
+};
 
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
@@ -65,21 +78,43 @@ pub fn build(b: *std.Build) void {
 
     const special_target = b.option(SpecialTarget, "special_target", "Special target type not represented by std.Target");
 
+    const fmod_dir = b.option([]const u8, "fmod_dir", "The location of the downloaded Fmod SDK, as an absolute path.") orelse fatal("Please set -Dfmod_dir=<Fmod SDK location>", .{});
+
     const fsbank = b.option(bool, "fsbank", "Enable fsbank component") orelse false;
-    _ = fsbank;
     const studio = b.option(bool, "studio", "Enable studio component") orelse false;
-    _ = studio;
 
     const act_tgt = (std.zig.system.NativeTargetInfo.detect(target) catch @panic("Could not resolve target!")).target;
 
     const target_platform: TargetPlatform = if (special_target) |st| .{ .special = st } else .{ .in_std = act_tgt.os.tag };
+    if (fsbank) {
+        _ = for (fsbank_platforms) |platform| {
+            if (std.meta.eql(platform, target_platform)) break platform;
+        } else fatal("The platform {any} does not support fsbank!", .{target_platform});
+    }
+
+    const translate_c_step = b.addTranslateC(.{
+        .source_file = .{ .path = "src/include_all_headers.h" },
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const ctx = BuildContext{
+        .b = b,
+        .fsbank = fsbank,
+        .studio = studio,
+        .tgt = act_tgt,
+        .fmod_dir = fmod_dir,
+        .translate_c_step = translate_c_step,
+        .optimize = optimize,
+    };
 
     const pbi = switch (target_platform) {
         .in_std => |tag| switch (tag) {
+            .linux => handle_linux(ctx),
             else => @panic("TODO"),
         },
         .special => |st| switch (st) {
-            .android => handle_android(b, act_tgt),
+            .android => handle_android(ctx),
             else => @panic("TODO"),
         },
     };
@@ -138,10 +173,65 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_lib_unit_tests.step);
 }
 
-fn handle_android(b: *std.Build, tgt: std.Target) PlatformBuildInfo {
-    _ = b;
-    std.debug.print("cpu features: {any}", .{tgt.cpu.features});
+fn handle_linux(ctx: BuildContext) PlatformBuildInfo {
+    switch (ctx.tgt.cpu.arch) {
+        .arm => {
+            if (ctx.tgt.abi != .gnueabihf) {
+                fatal("ARM32 support on Linux requires hard-float GNU EABI.", .{});
+            }
+        },
+        .aarch64 => {},
+        .x86 => {},
+        .x86_64 => {},
+        else => unreachable,
+    }
     return undefined;
+}
+
+fn handle_android(ctx: BuildContext) PlatformBuildInfo {
+    const ArmFeature = std.Target.arm.Feature;
+    const Arm64Feature = std.Target.aarch64.Feature;
+    if (ctx.tgt.os.tag != .linux) {
+        fatal("Targeting Android requires targeting Linux.", .{});
+    }
+    const core_lib = if (ctx.optimize == .Debug) "fmodL" else "fmod";
+    const studio_lib = if (ctx.optimize == .Debug) "fmodstudioL" else "fmodstudio";
+    return switch (ctx.tgt.cpu.arch) {
+        .arm => blk: {
+            if (!std.Target.arm.featureSetHas(ctx.tgt.cpu.features, ArmFeature.v7a)) {
+                fatal("ARM32 support on Android requires -Dcpu=v7a", .{});
+            }
+            if (ctx.tgt.abi != .gnueabi) {
+                fatal("ARM32 support on Android requires the soft-float GNU EABI.", .{});
+            }
+            const core_search_dirs = [_][]const u8{ctx.b.pathJoin(&[_][]const u8{ ctx.fmod_dir, "api/core/lib/armeabi-v7a/" })};
+            const studio_search_dirs = [_][]const u8{ctx.b.pathJoin(&[_][]const u8{ ctx.fmod_dir, "api/studio/lib/armeabi-v7a/" })};
+            break :blk if (ctx.studio)
+                PlatformBuildInfo{
+                    .lib_search_dirs = &core_search_dirs ++ &studio_search_dirs,
+                    .link_libs = &[_][]const u8{ core_lib, studio_lib },
+                }
+            else
+                PlatformBuildInfo{ .lib_search_dirs = &core_search_dirs, .link_libs = &[_][]const u8{core_lib} };
+        },
+        .aarch64 => blk: {
+            if (!std.Target.aarch64.featureSetHas(ctx.tgt.cpu.features, Arm64Feature.v8a)) {
+                fatal("ARM64 support on Android requires -Dcpu=v8a", .{});
+            }
+            const core_search_dirs = [_][]const u8{ctx.b.pathJoin(&[_][]const u8{ ctx.fmod_dir, "api/core/lib/arm64-v8a/" })};
+            const studio_search_dirs = [_][]const u8{ctx.b.pathJoin(&[_][]const u8{ ctx.fmod_dir, "api/studio/lib/arm64-v8a/" })};
+            break :blk if (ctx.studio)
+                PlatformBuildInfo{
+                    .lib_search_dirs = &core_search_dirs ++ &studio_search_dirs,
+                    .link_libs = &[_][]const u8{ core_lib, studio_lib },
+                }
+            else
+                PlatformBuildInfo{ .lib_search_dirs = &core_search_dirs, .link_libs = &[_][]const u8{core_lib} };
+        },
+        .x86 => {},
+        .x86_64 => {},
+        else => unreachable,
+    };
 }
 
 fn fatal(comptime format: []const u8, args: anytype) noreturn {
