@@ -1,7 +1,8 @@
-zig-cache/
-zig-out/
-/release/
-/debug/
-/build/
-/build-*/
+zig-*
+*.zlsreplay
+zls.build.json
+release
+debug
+build
+build-*
 /docgen_tmp/

@@ -1,10 +1,16 @@
 const std = @import("std");
-const testing = std.testing;
+const config = @import("config");
 
-export fn add(a: i32, b: i32) i32 {
-    return a + b;
-}
+pub const raw = @import("raw.zig");
 
-test "basic add functionality" {
-    try testing.expect(add(3, 7) == 10);
-}
+pub const core = @import("core.zig");
+
+pub const err = @import("error.zig");
+
+pub usingnamespace if (config.fsbank) struct {
+    pub const fsbank = @import("fsbank.zig");
+} else struct {};
+
+pub usingnamespace if (config.studio) struct {
+    pub const studio = @import("studio.zig");
+} else struct {};
