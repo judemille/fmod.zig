@@ -1,5 +1,11 @@
 # FMOD API bindings for Zig
 
+Bindings to the FMOD API (Core, FSBank, Studio) in Zig.
+
+Trying to make this compatible with all platforms that are accessible without special permission.
+This is being built based on version 2.02.19, but it may or may not be compatible with older versions.
+Compatibility with newer versions should not be an issue.
+
 ## Disclaimer
 
 The current maintainer of this project is a trans lesbian who unequivocally supports Ukraine,
