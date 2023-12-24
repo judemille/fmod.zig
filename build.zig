@@ -146,27 +146,6 @@ pub fn build(b: *std.Build) void {
         },
     };
 
-    // if (android) {
-    //     if (act_tgt.os.tag != .linux) {
-    //         fatal("Targeting Android requires targeting Linux!", .{});
-    //     }
-    //     if (act_tgt.cpu.arch == .arm and (!std.Target.arm.featureSetHas(act_tgt.cpu.features, .v7a) or act_tgt.abi != .gnueabi)) {
-    //         fatal("Android support for 32-bit ARM requires ARMv7A and gnueabi, but the requested target does not match this!", .{});
-    //     }
-    //     if (act_tgt.cpu.arch == .aarch64 and !std.Target.aarch64.featureSetHas(act_tgt.cpu.features, .v8a)) {
-    //         fatal("Android support for aarch64 requites ARMv8A, but this is not in the requested target!", .{});
-    //     }
-    //     if (simulator) {
-    //         fatal("Android cannot be targeted at the same time as an iOS/tvOS simulator!", .{});
-    //     }
-    //     if (uwp) {
-    //         fatal("Android cannot be targeted at the same time as UWP!", .{});
-    //     }
-    //     if (fsbank) {
-    //         fatal("fsbank is not supported on Android!", .{});
-    //     }
-    // }
-
     const lib = b.addStaticLibrary(.{
         .name = "zfmod",
         // In this case the main source file is merely a path, however, in more
@@ -174,37 +153,13 @@ pub fn build(b: *std.Build) void {
         .root_source_file = .{ .path = "src/root.zig" },
         .target = target,
         .optimize = optimize,
+        .link_libc = true,
     });
 
     const emit_docs = b.option(bool, "emit-docs", "Emit documentation for the library.") orelse false;
     if (emit_docs) {
         var gen_file = std.Build.GeneratedFile{ .step = &lib.step };
         lib.generated_docs = &gen_file;
-    }
-
-    const opts = b.addOptions();
-    opts.addOption(bool, "fsbank", fsbank);
-    opts.addOption(bool, "studio", studio);
-
-    lib.addOptions("config", opts);
-
-    const c_mod = translate_c_step.createModule();
-    lib.addModule("fmod-raw", c_mod);
-
-    for (pbi.lib_search_dirs) |search_dir| {
-        lib.addLibraryPath(.{ .cwd_relative = search_dir });
-    }
-
-    for (pbi.link_libs) |link_lib| {
-        lib.linkSystemLibrary2(link_lib, .{
-            .needed = true,
-            .use_pkg_config = .no,
-        });
-    }
-
-    if (act_tgt.os.tag == .ios or act_tgt.os.tag == .tvos) {
-        lib.linkFrameworkNeeded("AudioToolbox");
-        lib.linkFrameworkNeeded("AVFoundation");
     }
 
     // This declares intent for the library to be installed into the standard
@@ -228,15 +183,64 @@ pub fn build(b: *std.Build) void {
         .root_source_file = .{ .path = "src/root.zig" },
         .target = target,
         .optimize = optimize,
+        .link_libc = true,
     });
 
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
+
+    var preload_paths = std.ArrayList(u8).init(b.allocator);
+    for (pbi.lib_search_dirs, 1..) |dir, i| {
+        preload_paths.writer().print(
+            "{s}{s}",
+            .{ dir, if (i < pbi.lib_search_dirs.len) ":" else "" },
+        ) catch @panic("OOM");
+    }
+
+    const preload_paths_str = preload_paths.toOwnedSlice() catch @panic("OOM");
+
+    // On Windows? Haha, too bad! I can't make the tests automatically find the libs. Sorry.
+    run_lib_unit_tests.setEnvironmentVariable("LD_LIBRARY_PATH", preload_paths_str);
+    run_lib_unit_tests.setEnvironmentVariable("DYLD_LIBRARY_PATH", preload_paths_str);
 
     // Similar to creating the run step earlier, this exposes a `test` step to
     // the `zig build --help` menu, providing a way for the user to request
     // running the unit tests.
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_lib_unit_tests.step);
+
+    const opts = b.addOptions();
+    opts.addOption(bool, "fsbank", fsbank);
+    opts.addOption(bool, "studio", studio);
+
+    lib.addOptions("config", opts);
+    lib_unit_tests.addOptions("config", opts);
+
+    const c_mod = translate_c_step.createModule();
+    lib.addModule("fmod-raw", c_mod);
+    lib_unit_tests.addModule("fmod-raw", c_mod);
+
+    for (pbi.lib_search_dirs) |search_dir| {
+        lib.addLibraryPath(.{ .cwd_relative = search_dir });
+        lib_unit_tests.addLibraryPath(.{ .cwd_relative = search_dir });
+    }
+
+    for (pbi.link_libs) |link_lib| {
+        lib.linkSystemLibrary2(link_lib, .{
+            .needed = true,
+            .use_pkg_config = .no,
+        });
+        lib_unit_tests.linkSystemLibrary2(link_lib, .{
+            .needed = true,
+            .use_pkg_config = .no,
+        });
+    }
+
+    if (act_tgt.os.tag == .ios or act_tgt.os.tag == .tvos) {
+        lib.linkFrameworkNeeded("AudioToolbox");
+        lib.linkFrameworkNeeded("AVFoundation");
+        lib_unit_tests.linkFrameworkNeeded("AudioToolbox");
+        lib_unit_tests.linkFrameworkNeeded("AVFoundation");
+    }
 }
 
 fn handleLinux(ctx: BuildContext) PlatformBuildInfo {

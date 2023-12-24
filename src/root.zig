@@ -14,3 +14,7 @@ pub usingnamespace if (config.fsbank) struct {
 pub usingnamespace if (config.studio) struct {
     pub const studio = @import("studio.zig");
 } else struct {};
+
+test {
+    std.testing.refAllDecls(@This());
+}
