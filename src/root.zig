@@ -1,5 +1,8 @@
+const builtin = @import("builtin");
 const std = @import("std");
 const config = @import("config");
+
+pub const fmodCallConv: std.builtin.CallingConvention = if (builtin.target.cpu.arch == .x86 and builtin.target.os.tag == .windows) .Stdcall else .C;
 
 pub const raw = @import("raw.zig");
 

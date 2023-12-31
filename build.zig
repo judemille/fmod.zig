@@ -103,6 +103,8 @@ pub fn build(b: *std.Build) void {
         .source_file = .{ .path = "src/include_all_headers.h" },
         .target = target,
         .optimize = optimize,
+        .link_libc = true,
+        .use_clang = true,
     });
     translate_c_step.addIncludeDir(b.pathJoin(&[_][]const u8{ fmod_dir, "api/core/inc" }));
 

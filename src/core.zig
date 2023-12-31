@@ -4,7 +4,9 @@ const c = @import("raw.zig");
 const err = @import("error.zig");
 const FError = err.FmodError;
 
+pub const DSP = @import("core/DSP.zig");
 pub const System = @import("core/System.zig");
+pub const VolumeMatrix = @import("core/VolumeMatrix.zig");
 
 /// Check if FMOD is accessing the disk.
 ///
@@ -60,7 +62,7 @@ pub const DebugFlags = packed struct(c_uint) {
     display_thread: bool,
     _padding_3: _debugflags_end_padding_type = 0,
 
-    test "ensure DebugFlags works right" {
+    test "core.System: ensure DebugFlags works right" {
         const expectEqual = std.testing.expectEqual;
         const log2 = std.math.log2;
         try expectEqual(@sizeOf(c_uint), @sizeOf(@This()));

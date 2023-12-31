@@ -6,6 +6,8 @@ const std = @import("std");
 
 const c = @import("../raw.zig");
 const err = @import("../error.zig");
+
+const DSP = @import("DSP.zig");
 const This = @This();
 
 system_ptr: ?*c.FMOD_SYSTEM,
@@ -94,7 +96,7 @@ pub const InitFlags = packed struct(c_uint) {
     memory_tracking: bool,
     _padding_3: _initflags_end_padding_type = 0,
 
-    test "ensure InitFlags works right" {
+    test "core: ensure InitFlags works right" {
         const expectEqual = std.testing.expectEqual;
         const log2 = std.math.log2;
         try expectEqual(@sizeOf(c_uint), @sizeOf(@This()));
@@ -107,6 +109,8 @@ pub const InitFlags = packed struct(c_uint) {
 };
 
 /// Initialize this `System` and prepare FMOD for playback.
+///
+/// Assumes that `init` has not yet been called, or `close` has since been called.
 ///
 /// # Parameters
 /// - maxchannels
@@ -209,14 +213,14 @@ pub const OutputType = enum(c.FMOD_OUTPUTTYPE) {
     /// Writes output to a .wav file.
     ///
     /// # Extra Driver Data
-    /// Pass the WAV file name, as a `[:0]const u8`, in `extra_driver_data`, in the `init` call.
+    /// Pass the WAV file name, as a `[*:0]const u8`, in `extra_driver_data`, in the `init` call.
     wav_writer = c.FMOD_OUTPUTTYPE_WAVWRITER,
     /// Non-real-time version of `no_sound`.
     no_sound_nrt = c.FMOD_OUTPUTTYPE_NOSOUND_NRT,
     /// Non-real-time version of `wav_writer`.
     ///
     /// # Extra Driver Data
-    /// Pass the WAV file name, as a `[:0]const u8`, in `extra_driver_data`, in the `init` call.
+    /// Pass the WAV file name, as a `[*:0]const u8`, in `extra_driver_data`, in the `init` call.
     wav_writer_nrt = c.FMOD_OUTPUTTYPE_WAVWRITER_NRT,
     /// Windows/UWP/Xbox One/Game Core -- Windows Audio Session API. Default on relevant platforms.
     wasapi = c.FMOD_OUTPUTTYPE_WASAPI,
@@ -228,7 +232,7 @@ pub const OutputType = enum(c.FMOD_OUTPUTTYPE) {
     /// Linux -- PulseAudio. Default on Linux if available.
     ///
     /// # Extra Driver Data
-    /// Pass the application name, as a `[:0]const u8`, in the `extra_driver_data` of the `init` call.
+    /// Pass the application name, as a `[*:0]const u8`, in the `extra_driver_data` of the `init` call.
     pulseaudio = c.FMOD_OUTPUTTYPE_PULSEAUDIO,
     /// Linux -- Advanced Linux Sound Architecture. Default on Linux if PulseAudio is unavailable.
     alsa = c.FMOD_OUTPUTTYPE_ALSA,
