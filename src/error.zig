@@ -6,70 +6,100 @@ pub const GeneralError = error{
     /// Tried to call a function on a data type that does not allow this
     /// type of functionality (i.e. calling `Sound.lock` on a streaming `Sound`).
     BadCommand,
+
     /// Error trying to allocate a `Channel`.
     ChannelAlloc,
+
     /// The specified `Channel` has been reused to play another `Sound`.
     ChannelStolen,
+
     /// DMA failure. See debug output for more information.
     DMA,
+
     /// Unsupported file or audio format.
     Format,
+
     /// There is a version mismatch between the FMOD header and either the
     /// FMOD Studio library or the FMOD Core library.
     HeaderMismatch,
+
     /// FMOD was not initialized correctly to support this function.
     Initialization,
+
     /// Cannot call this command after `System.init`.
     Initialized,
+
     /// An error occurred that wasn't supposed to. Contact support.
     Internal,
+
     /// Reached maximum audible playback count for this `Sound`'s `SoundGroup`.
     MaxAudible,
+
     /// Not enough memory or resources.
     Memory,
+
     /// Can't use `FMOD_OPENMEMORY_POINT` on non-PCM source data, or
     /// non mp3/xma/adpcm data if `FMOD_CREATECOMPRESSEDSAMPLE` was used.
     MemoryCantPoint,
+
     /// Tried to call a command on a 2D `Sound` when the command was meant
     /// for 3D `Sound`.
     Needs3D,
+
     /// Tried to use a feature that requires hardware support.
     NeedsHardware,
+
     /// Operation could not be performed because the specified `Sound`/`DSP`
     /// connection is not ready.
     NotReady,
+
     /// An error occurred trying to initialize the recording device.
     Record,
+
     /// The specified recording driver has been disconnected.
     RecordDisconnected,
+
     /// The specified tag could not be found, or there are no tags.
     TagNotFound,
+
     /// The `Sound` created exceeds the allowable input channel count. This can
     /// be increased using the `maxinputchannels` parameter in `System.setSoftwareFormat`.
     TooManyChannels,
+
     /// The retrieved string is too long to fit in the supplied buffer and has been truncated.
     Truncated,
+
     /// Something in FMOD hasn't been implemented when it should be! Contact support!
     Unimplemented,
+
     /// This command failed because `System.init` or `System.setDriver` was not called.
     Uninitialized,
+
     /// A command issued was not supported by this object. Possibly a plugin
     /// without certain callbacks specified.
     Unsupported,
+
     /// The version number of this fule format is not supported.
     Version,
+
     /// The `studio.System` object is not yet initialized.
     StudioUninitialized,
+
     /// The specified resource is not loaded, so it can't be unloaded.
     StudioNotLoaded,
+
     /// The specified resource is already locked.
     AlreadyLocked,
+
     /// The specified resource is not locked, so it can't be unlocked.
     NotLocked,
+
     /// The length provided exceeds the allowable limit.
     TooManySamples,
+
     /// These bindings don't recognize this FMOD error.
     UnrecognizedFmodError,
+
     _,
 };
 
@@ -78,28 +108,36 @@ pub const DspError = error{
     /// DSP connection error. Connection possibly caused a cyclic dependency
     /// or connected DSPs with incompatible buffer counts.
     DspConnection,
+
     /// DSP return code from a DSP process query callback. Tells mixer not to
     /// call the process callback and thereforew not consume CPU. Use this to
     /// optimize the DSP graph.
     DspDontProcess,
+
     /// DSP format error. A DSP unit may have attempted to connect to this
     /// network with the wrong format, or a matrix may have been set with the
     /// wrong size of the target unit has a specified channel map.
     DspFormat,
+
     /// DSP is already in the mixer's DSP network. It must be removed before
     /// being reinserted or released.
     DspInUse,
+
     /// DSP connection error. Couldn't find the DSP unit specified.
     DspNotFound,
+
     /// DSP operation error. Cannot perform operation on this DSP, as it is
     /// reserved by the system.
     DspReserved,
+
     /// DSP return code from a DSP process query callback. Tells mixer silence
     /// would be produced from read, so go idle and not consume CPU. Use this
     /// to optimize the DSP graph.
     DspSilence,
+
     /// DSP operation cannot be performed on a DSP of this type.
     DspType,
+
     _,
 };
 
@@ -107,17 +145,23 @@ pub const DspError = error{
 pub const FileError = error{
     /// Error loading file.
     FileBad,
+
     /// Couldn't perform seek operation. This is a limitation of the medium
     /// (ie netstreams) or the file format.
     FileCouldNotSeek,
+
     /// Media was ejected while reading.
     FileDiskEjected,
+
     /// End of file unexpectedly reached while trying to read essential data (truncated?).
     FileEof,
+
     /// End of current chunk reached while trying to read data.
     FileEndOfData,
+
     /// File not found.
     FileNotFound,
+
     _,
 };
 
@@ -125,14 +169,19 @@ pub const FileError = error{
 pub const HttpError = error{
     /// Catch-all for HTTP errors not otherwise listed.
     HttpGeneral,
+
     /// The specified resource requires authentication or is forbidden.
     HttpAccess,
+
     /// Proxy authentication is required to access the specified resource.
     HttpProxyAuth,
+
     /// An HTTP server error occurred.
     HttpServerError,
+
     /// The HTTP request timed out.
     HttpTimeout,
+
     _,
 };
 
@@ -140,23 +189,32 @@ pub const HttpError = error{
 pub const InvalidParameterError = error{
     /// Value passed in was NaN, Inf, or denormalized float.
     InvalidFloat,
+
     /// An invalid object handle was used.
     InvalidHandle,
+
     /// An invalid parameter was passed to this function.
     InvalidParam,
+
     /// An invalid seek position was passed to this function.
     InvalidPosition,
+
     /// An invalid speaker was passed to this function based on the current
     /// speaker mode.
     InvalidSpeaker,
+
     /// The syncpoint did not come from this `Sound` handle.
     InvalidSyncpoint,
+
     /// Tried to call a function on a thread that is not supported.
     InvalidThread,
+
     /// The vectors passed in are not unit length, or perpendicular.
     InvalidVector,
+
     /// An invalid string was passed to this function.
     InvalidString,
+
     _,
 };
 
@@ -164,12 +222,16 @@ pub const InvalidParameterError = error{
 pub const NetError = error{
     /// Couldn't connect to the specified host.
     NetConnect,
+
     /// Catch-all for socket errors not otherwise listed.
     NetSocket,
+
     /// The specified URL couldn't be resolved.
     NetUrl,
+
     /// Operation on a non-blocking socket couldn't complete immediately.
     NetWouldBlock,
+
     _,
 };
 
@@ -177,19 +239,25 @@ pub const NetError = error{
 pub const OutputError = error{
     /// The output device is already in use and cannot be reused.
     OutputAllocated,
+
     /// Error creating hardware sound buffer.
     OutputCreateBuffer,
+
     /// A call to a standard sound card driver failed, which could possibly
     /// mean a bug in the driver (or resources were missing/exhausted).
     OutputDriverCall,
+
     /// The sound card does not support the specified format.
     OutputFormat,
+
     /// Error initializing output device.
     OutputInit,
+
     /// The output device has no drivers installed. If pre-init,
     /// `FMOD_OUTPUT_NOSOUND` is selected as the output mode. If post-init, the
     /// function just fails.
     OutputNoDrivers,
+
     _,
 };
 
@@ -197,13 +265,17 @@ pub const OutputError = error{
 pub const PluginError = error{
     /// An unspecified error has been returned from a plugin.
     PluginUnspecified,
+
     /// A requested output, DSP unit type, or codec was not available.
     PluginMissing,
+
     /// A resource that the plugin requires cannot be allocated
     /// or found. (ie the DLS file for MIDI playback).
     PluginResource,
+
     /// A plugin was build with an unsupported SDK version.
     PluginVersion,
+
     _,
 };
 
@@ -212,9 +284,11 @@ pub const ReverbError = error{
     /// Reverb properties cannot be set on this `Channel` because a parent
     /// `ChannelGroup` owns the reverb connection.
     ReverbChannelGroup,
+
     /// Specified instance in `FMOD_REVERB_PROPERTIES` couldn't be set.
     /// Most likely because it is an invalid instance number, or the reverb doesn't exist.
     ReverbInstance,
+
     _,
 };
 
@@ -224,12 +298,15 @@ pub const SubsoundError = error{
     /// doesn't contain subsounds when it should have. The operation may also
     /// not be able to be performed on a parent `Sound`.
     Subsounds,
+
     /// The subsound is already being used by another `Sound`. You cannot have
     /// more than one parent to a `Sound`. Null out the other parent's entry first.
     SubsoundAllocated,
+
     /// Shared subsounds cannot be replaced or moved from their parent stream,
     /// such as when the parent stream is an FSB file.
     SubsoundCantMove,
+
     _,
 };
 
@@ -237,15 +314,20 @@ pub const SubsoundError = error{
 pub const EventError = error{
     /// The specified bank has already been loaded.
     EventAlreadyLoaded,
+
     /// The live update connection failed due to the game already being connected.
     EventLiveUpdateBusy,
+
     /// The live update connection failed due to the game data being
     /// out of sync with the tool.
     EventLiveUpdateMismatch,
+
     /// The live update connection timed out.
     EventLiveUpdateTimeout,
+
     /// The requested event, parameter, bus, or VCA could not be found.
     EventNotFound,
+
     _,
 };
 

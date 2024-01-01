@@ -13,7 +13,11 @@ row_len: usize,
 rows_valid: usize = 0,
 cols_valid: usize = 0,
 
-pub fn init(alloc: std.mem.Allocator, rows: usize, cols: usize) std.mem.Allocator.Error!This {
+pub fn init(
+    alloc: std.mem.Allocator,
+    rows: usize,
+    cols: usize,
+) std.mem.Allocator.Error!This {
     std.debug.assert(rows > 0);
     std.debug.assert(cols > 0);
     const slice = try alloc.alloc(f32, rows * cols);

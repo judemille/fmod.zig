@@ -44,7 +44,8 @@ pub const Connection = struct {
         /// before.
         ///
         /// A send connection will only read what exists at the input's buffer at
-        /// the time of executing the output DSP unit (which can be considered the 'return').
+        /// the time of executing the output DSP unit (which can be considered
+        /// the 'return').
         send = c.FMOD_DSPCONNECTION_TYPE_SEND,
         /// Send-sidechain connection type. Audio is mixed from the input to the
         /// output DSP's sidechain buffer, meaning it will NOT be part of the
@@ -92,7 +93,10 @@ pub const Connection = struct {
         return volume;
     }
 
-    pub fn getMixMatrix(self: @This(), alloc: std.mem.Allocator) (FError || std.mem.Allocator.Error)!VolumeMatrix {
+    pub fn getMixMatrix(
+        self: @This(),
+        alloc: std.mem.Allocator,
+    ) (FError || std.mem.Allocator.Error)!VolumeMatrix {
         var out_channels: c_int = 0;
         var in_channels: c_int = 0;
         try err.resultToError(c.FMOD_DSPConnection_GetMixMatrix(
@@ -104,7 +108,11 @@ pub const Connection = struct {
         ));
         const out_channels_u: usize = @intCast(out_channels);
         const in_channels_u: usize = @intCast(in_channels);
-        var vm = try VolumeMatrix.init(alloc, out_channels_u, in_channels_u);
+        var vm = try VolumeMatrix.init(
+            alloc,
+            out_channels_u,
+            in_channels_u,
+        );
         try err.resultToError(c.FMOD_DSPConnection_GetMixMatrix(
             self.ptr,
             @ptrCast(vm.slice),
@@ -119,7 +127,10 @@ pub const Connection = struct {
 
     pub fn getUserData(self: @This()) FError!?*anyopaque {
         var user_data: ?*anyopaque = null;
-        try err.resultToError(c.FMOD_DSPConnection_GetUserData(self.ptr, &user_data));
+        try err.resultToError(c.FMOD_DSPConnection_GetUserData(
+            self.ptr,
+            &user_data,
+        ));
         return user_data;
     }
 
@@ -138,7 +149,10 @@ pub const Connection = struct {
     }
 
     pub fn setUserData(self: @This(), user_data: ?*anyopaque) FError!void {
-        try err.resultToError(c.FMOD_DSPConnection_SetUserData(self.ptr, user_data));
+        try err.resultToError(c.FMOD_DSPConnection_SetUserData(
+            self.ptr,
+            user_data,
+        ));
     }
 
     test {
@@ -147,44 +161,107 @@ pub const Connection = struct {
 };
 
 pub const Type = enum(c.FMOD_DSP_TYPE) {
+    /// This DSP was created via a non-FMOD plugin, and has an unknown purpose.
     unknown = c.FMOD_DSP_TYPE_UNKNOWN,
+
+    /// Does not process the signal -- acts as a unit purely for mixing inputs.
     mixer = c.FMOD_DSP_TYPE_MIXER,
+
+    /// Generates sine/square/saw/triangle waves, or noise tones. See
+    /// `FMOD_DSP_OSCILLATOR` for parameter information,
+    /// [Effect reference - Oscillator](https://fmod.com/docs/2.02/api/effects-reference.html#oscillator)
+    /// for overview.
     oscillator = c.FMOD_DSP_TYPE_OSCILLATOR,
+
+    /// DEPRECATED! Will be removed in a future release!
+    ///
+    /// Filters sound using a high quality, resonant, low-pass filter algorithm,
+    /// but consumes more CPU time.
+    ///
+    /// See `FMOD_DSP_LOWPASS` remarks for parameter information,
+    /// [Effect reference - Low Pass](https://fmod.com/docs/2.02/api/effects-reference.html#low-pass)
+    /// for overview.
     low_pass = c.FMOD_DSP_TYPE_LOWPASS,
+
+    /// Filters sound using a resonant low-pass filter algorithm that is used in
+    /// Impulse Tracker, but with limited cutoff range. See `FMOD_DSP_ITLOWPASS`
+    /// for parameter information,
+    /// [Effect reference - IT Low Pass](https://fmod.com/docs/2.02/api/effects-reference.html#it-low-pass)
+    /// for overview.
     it_low_pass = c.FMOD_DSP_TYPE_ITLOWPASS,
+
+    /// DEPRECATED! Will be removed in a future release!
+    ///
+    /// Filters sound using a resonant high-pass filter algorithm. See
+    /// `FMOD_DSP_HIGHPASS` remarks for parameter information,
+    /// [Effect reference - High Pass](https://fmod.com/docs/2.02/api/effects-reference.html#high-pass)
+    /// for overview.
     high_pass = c.FMOD_DSP_TYPE_HIGHPASS,
+
     echo = c.FMOD_DSP_TYPE_ECHO,
+
     fader = c.FMOD_DSP_TYPE_FADER,
+
     flange = c.FMOD_DSP_TYPE_FLANGE,
+
     distortion = c.FMOD_DSP_TYPE_DISTORTION,
+
     normalize = c.FMOD_DSP_TYPE_NORMALIZE,
+
     limiter = c.FMOD_DSP_TYPE_LIMITER,
+
     param_eq = c.FMOD_DSP_TYPE_PARAMEQ,
+
     pitch_shift = c.FMOD_DSP_TYPE_PITCHSHIFT,
+
     chorus = c.FMOD_DSP_TYPE_CHORUS,
+
     vst_plugin = c.FMOD_DSP_TYPE_VSTPLUGIN,
+
     winamp_plugin = c.FMOD_DSP_TYPE_WINAMPPLUGIN,
+
     it_echo = c.FMOD_DSP_TYPE_ITECHO,
+
     compressor = c.FMOD_DSP_TYPE_COMPRESSOR,
+
     sfx_reverb = c.FMOD_DSP_TYPE_SFXREVERB,
+
     low_pass_simple = c.FMOD_DSP_TYPE_LOWPASS_SIMPLE,
+
     delay = c.FMOD_DSP_TYPE_DELAY,
+
     tremolo = c.FMOD_DSP_TYPE_TREMOLO,
+
     ladspa_plugin = c.FMOD_DSP_TYPE_LADSPAPLUGIN,
+
     send = c.FMOD_DSP_TYPE_SEND,
+
     return_ = c.FMOD_DSP_TYPE_RETURN,
+
     high_pass_simple = c.FMOD_DSP_TYPE_HIGHPASS_SIMPLE,
+
     pan = c.FMOD_DSP_TYPE_PAN,
+
     three_eq = c.FMOD_DSP_TYPE_THREE_EQ,
+
     fft = c.FMOD_DSP_TYPE_FFT,
+
     loudness_meter = c.FMOD_DSP_TYPE_LOUDNESS_METER,
+
     envelope_follower = c.FMOD_DSP_TYPE_ENVELOPEFOLLOWER,
+
     convolution_reverb = c.FMOD_DSP_TYPE_CONVOLUTIONREVERB,
+
     channel_mix = c.FMOD_DSP_TYPE_CHANNELMIX,
+
     transceiver = c.FMOD_DSP_TYPE_TRANSCEIVER,
+
     object_pan = c.FMOD_DSP_TYPE_OBJECTPAN,
+
     multi_band_eq = c.FMOD_DSP_TYPE_MULTIBAND_EQ,
+
     max = c.FMOD_DSP_TYPE_MAX,
+
     _,
 };
 
@@ -199,7 +276,11 @@ pub const CallbackData = union(enum) {
     nothing,
 };
 
-pub const Callback = fn (dsp: DSP, typ: CallbackType, data: CallbackData) c.FMOD_RESULT;
+pub const Callback = fn (
+    dsp: DSP,
+    typ: CallbackType,
+    data: CallbackData,
+) c.FMOD_RESULT;
 
 pub fn addInput(
     self: DSP,
@@ -251,7 +332,9 @@ pub fn getInfo(self: DSP) err.FmodError!struct {
     config_width: c_int,
     config_height: c_int,
 } {
-    var ret = std.mem.zeroes(comptime @typeInfo(@typeInfo(@TypeOf(getInfo)).Fn.return_type.?).ErrorUnion.payload);
+    var ret = std.mem.zeroes(comptime @typeInfo(
+        @typeInfo(@TypeOf(getInfo)).Fn.return_type.?,
+    ).ErrorUnion.payload);
     try err.resultToError(c.FMOD_DSP_GetInfo(
         self.ptr,
         @ptrCast(&ret.name),
@@ -281,7 +364,9 @@ pub fn setCallback(self: DSP, comptime callback: Callback) err.FmodError!void {
                 DSP{ .ptr = c_dsp },
                 typ,
                 switch (typ) {
-                    .data_parameter_release => CallbackData{ .data_parameter_release = data.* },
+                    .data_parameter_release => CallbackData{
+                        .data_parameter_release = data.*,
+                    },
                 },
             );
         }

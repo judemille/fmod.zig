@@ -10,25 +10,29 @@ pub const VolumeMatrix = @import("core/VolumeMatrix.zig");
 
 /// Check if FMOD is accessing the disk.
 ///
-/// Do not use this to synchronize your own disk I/O with FMOD, since race conditions can occur.
-/// `setDiskBusy` will block until FMOD is no longer accessing the disk, so use that if you plan
-/// to access the disk.
+/// Do not use this to synchronize your own disk I/O with FMOD, since race
+/// conditions can occur. `setDiskBusy` will block until FMOD is no longer accessing
+/// the disk, so use that if you plan to access the disk.
 pub fn getDiskBusy() FError!bool {
     var busy: c_int = undefined;
     try err.resultToError(c.FMOD_File_GetDiskBusy(&busy));
     return busy != 0;
 }
 
-/// Set the current disk busy state. Will block if FMOD is accessing the disk. Glorified mutex.
+/// Set the current disk busy state. Will block if FMOD is accessing the disk.
+/// Glorified mutex.
 ///
-/// Pass `true` before you start accessing files that mutually exclusive access from FMOD.
+/// Pass `true` before you start accessing files that mutually exclusive access
+/// from FMOD.
+///
 /// Pass `false` once you're done.
 pub fn setDiskBusy(busy: bool) FError!void {
     try err.resultToError(c.FMOD_File_SetDiskBusy(@intFromBool(busy)));
 }
 
-/// Inspect the current memory usage of FMOD. Set `blocking` to true if you want the DSP network to
-/// immediately perform all queued allocations. This is very costly, though.
+/// Inspect the current memory usage of FMOD. Set `blocking` to true if you want
+/// the DSP network to immediately perform all queued allocations. This is very costly,
+/// though.
 pub fn getMemoryStats(blocking: bool) FError!struct {
     /// Currently allocated memory, at the time of this call.
     current_allocated: c_int,
@@ -65,10 +69,22 @@ pub const DebugFlags = packed struct(c_uint) {
     test "core.System: ensure DebugFlags works right" {
         const expectEqual = std.testing.expectEqual;
         const log2 = std.math.log2;
-        try expectEqual(@sizeOf(c_uint), @sizeOf(@This()));
-        try expectEqual(@bitSizeOf(c_uint), @bitSizeOf(@This()));
-        try expectEqual(log2(0x100), @bitOffsetOf(@This(), "type_memory"));
-        try expectEqual(log2(0x10000), @bitOffsetOf(@This(), "display_timestamps"));
+        try expectEqual(
+            @sizeOf(c_uint),
+            @sizeOf(@This()),
+        );
+        try expectEqual(
+            @bitSizeOf(c_uint),
+            @bitSizeOf(@This()),
+        );
+        try expectEqual(
+            log2(0x100),
+            @bitOffsetOf(@This(), "type_memory"),
+        );
+        try expectEqual(
+            log2(0x10000),
+            @bitOffsetOf(@This(), "display_timestamps"),
+        );
     }
 };
 

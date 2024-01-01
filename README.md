@@ -2,28 +2,31 @@
 
 Bindings to the FMOD API (Core, FSBank, Studio) in Zig.
 
-Trying to make this compatible with all platforms that are accessible without special permission.
-This is being built based on version 2.02.19, but it may or may not be compatible with older versions.
-Compatibility with newer versions should not be an issue.
+I am trying to make this compatible with all platforms that are accessible without
+special permission. This is being built based on version 2.02.19, but it may or may not
+be compatible with older versions. Compatibility with newer versions should not be
+an issue.
 
 ## Disclaimer
 
-The current maintainer of this project is a trans lesbian who unequivocally supports Ukraine,
-and opposes any and all human rights violations.
+The current maintainer of this project is a trans lesbian who unequivocally supports
+Ukraine, and opposes any and all human rights violations.
 
 ### *You should not use this project if you:*
 
 - Do not unequivocally support the LGBTQ+ population, including transgender individuals.
 - Think that LGBTQ+ people "shouldn't put it out on display"
 - Support "drop the T", TERF, or similar movements.
-- Think that pedophilia is included in LGBTQ+, either because you want it to be included, or you think
-  that the community accepts it. It does not accept it.
-- Refuse to address and refer to people with their preferred name, pronouns, and gender labels.
+- Think that pedophilia is included in LGBTQ+, either because you want it to be included,
+  or you think that the community accepts it. It does not accept it.
+- Refuse to address and refer to people with their preferred name, pronouns, and
+  gender labels.
 - Do not support Ukraine's struggle against their Russian oppressors.
-- Support any far-right parties or politicians (including Vladimir Putin, the GOP, AfD, FdI, and similar)
+- Support any far-right parties or politicians (including Vladimir Putin, the GOP,
+  AfD, FdI, and similar)
 
-I cannot stop you, but anyone observed to meet the above listed criteria who interacts with the project
-will be blocked from posting issues or pull requests.
+I cannot stop you, but anyone observed to meet the above listed criteria who interacts
+with the project will be blocked from interaction.
 
 ## License
 
